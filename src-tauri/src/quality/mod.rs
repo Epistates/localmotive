@@ -48,7 +48,7 @@ pub fn run_quality_pipeline(
 }
 
 /// Statistics from the quality pipeline run.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QualityStats {
     pub total_input: usize,

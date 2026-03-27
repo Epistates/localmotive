@@ -15,7 +15,7 @@ use crate::quality;
 use crate::scanner::ProjectManifest;
 
 /// Result of a complete pipeline run.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PipelineResult {
     pub project_id: String,

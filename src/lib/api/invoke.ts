@@ -8,6 +8,11 @@ import type {
   ProgressEvent,
   GenerationStatus,
   DatasetStatistics,
+  WhoamiResponse,
+  PublishConfig,
+  PublishResult,
+  PublishProgress,
+  OutputFormat,
 } from "./types.js";
 
 /** Discover projects within a directory. */
@@ -97,4 +102,45 @@ export async function getStatistics(
   samples: unknown[],
 ): Promise<DatasetStatistics> {
   return invoke("cmd_get_statistics", { samples });
+}
+
+// ── Hugging Face Publish ──────────────────────────────────────────
+
+/** Validate a Hugging Face token. */
+export async function validateHfToken(token: string): Promise<WhoamiResponse> {
+  return invoke("cmd_validate_hf_token", { token });
+}
+
+/** Save HF token to the secure store. */
+export async function saveHfToken(token: string): Promise<void> {
+  return invoke("cmd_save_hf_token", { token });
+}
+
+/** Get stored HF token. */
+export async function getHfToken(): Promise<string | null> {
+  return invoke("cmd_get_hf_token");
+}
+
+/** Delete stored HF token. */
+export async function deleteHfToken(): Promise<void> {
+  return invoke("cmd_delete_hf_token");
+}
+
+/** Publish a dataset to Hugging Face Hub with progress streaming. */
+export async function publishDataset(
+  config: PublishConfig,
+  pipelineResult: PipelineResult,
+  projectName: string,
+  formats: OutputFormat[],
+  onProgress: (progress: PublishProgress) => void,
+): Promise<PublishResult> {
+  const channel = new Channel<PublishProgress>();
+  channel.onmessage = onProgress;
+  return invoke("cmd_publish_dataset", {
+    config,
+    pipelineResult,
+    projectName,
+    formats,
+    onProgress: channel,
+  });
 }

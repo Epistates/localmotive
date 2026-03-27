@@ -34,6 +34,9 @@ pub enum Error {
 
     #[error("Path error: {0}")]
     InvalidPath(String),
+
+    #[error("Publish error: {0}")]
+    Publish(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

@@ -6,15 +6,28 @@
   import { Badge } from "$lib/components/ui/badge";
   import { Separator } from "$lib/components/ui/separator";
   import * as Card from "$lib/components/ui/card";
-  import { Settings, Save, RotateCcw, FolderOpen } from "@lucide/svelte";
+  import {
+    Settings,
+    Save,
+    RotateCcw,
+    FolderOpen,
+    ExternalLink,
+    Check,
+    Loader2,
+    Trash2,
+  } from "@lucide/svelte";
   import {
     getConfig,
     updateConfig,
     getFormats,
     getDefaultIgnorePatterns,
     pickDirectory,
+    validateHfToken,
+    saveHfToken,
+    getHfToken,
+    deleteHfToken,
   } from "$lib/api";
-  import type { PipelineConfig, FormatInfo } from "$lib/api";
+  import type { PipelineConfig, FormatInfo, WhoamiResponse } from "$lib/api";
   import { toast } from "svelte-sonner";
 
   let config = $state<PipelineConfig | null>(null);
@@ -22,6 +35,13 @@
   let defaultPatterns = $state<string[]>([]);
   let userPatternsText = $state("");
   let saving = $state(false);
+
+  // HF token state
+  let hfToken = $state("");
+  let hfTokenMasked = $state(true);
+  let hfValidating = $state(false);
+  let hfUser = $state<WhoamiResponse | null>(null);
+  let hfTokenStored = $state(false);
 
   onMount(async () => {
     try {
@@ -36,6 +56,20 @@
       userPatternsText = cfg.ignore.userPatterns.join("\n");
     } catch (e) {
       toast.error(`Failed to load config: ${e}`);
+    }
+
+    // Load stored HF token
+    try {
+      const stored = await getHfToken();
+      if (stored) {
+        hfToken = stored;
+        hfTokenStored = true;
+        // Auto-validate stored token
+        const user = await validateHfToken(stored);
+        hfUser = user;
+      }
+    } catch {
+      // Token invalid or not set — ignore
     }
   });
 
@@ -68,9 +102,42 @@
 
   async function handlePickOutputDir() {
     if (!config) return;
-    const dir = await pickDirectory();
-    if (dir) {
-      config.export.outputDirectory = dir;
+    try {
+      const dir = await pickDirectory();
+      if (dir) {
+        config.export.outputDirectory = dir;
+      }
+    } catch (e) {
+      toast.error(`Failed to open directory picker: ${e}`);
+    }
+  }
+
+  async function handleValidateHfToken() {
+    if (!hfToken.trim()) return;
+    try {
+      hfValidating = true;
+      const user = await validateHfToken(hfToken);
+      hfUser = user;
+      await saveHfToken(hfToken);
+      hfTokenStored = true;
+      toast.success(`Connected as ${user.name}`);
+    } catch (e) {
+      hfUser = null;
+      toast.error(`Invalid token: ${e}`);
+    } finally {
+      hfValidating = false;
+    }
+  }
+
+  async function handleDeleteHfToken() {
+    try {
+      await deleteHfToken();
+      hfToken = "";
+      hfUser = null;
+      hfTokenStored = false;
+      toast.info("Hugging Face token removed.");
+    } catch (e) {
+      toast.error(`Failed to delete token: ${e}`);
     }
   }
 
@@ -341,6 +408,88 @@
                 />
               </div>
             </div>
+          </Card.Content>
+        </Card.Root>
+
+        <!-- Hugging Face -->
+        <Card.Root>
+          <Card.Header>
+            <Card.Title>Hugging Face</Card.Title>
+            <Card.Description>
+              Connect your Hugging Face account to publish datasets directly from Localmotive.
+            </Card.Description>
+          </Card.Header>
+          <Card.Content class="space-y-4">
+            {#if hfUser}
+              <div class="flex items-center justify-between rounded-lg border border-green-500/30 bg-green-500/5 p-4">
+                <div class="flex items-center gap-3">
+                  <Check class="h-5 w-5 text-green-500" />
+                  <div>
+                    <div class="text-sm font-medium">
+                      Connected as <span class="font-bold">{hfUser.name}</span>
+                    </div>
+                    {#if hfUser.orgs.length > 0}
+                      <div class="text-xs text-muted-foreground">
+                        Orgs: {hfUser.orgs.map((o) => o.name).join(", ")}
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onclick={handleDeleteHfToken}
+                >
+                  <Trash2 class="mr-2 h-3 w-3" />
+                  Disconnect
+                </Button>
+              </div>
+            {:else}
+              <div>
+                <label class="text-sm font-medium" for="hf-token">API Token</label>
+                <div class="mt-1 flex gap-2">
+                  <Input
+                    id="hf-token"
+                    type={hfTokenMasked ? "password" : "text"}
+                    bind:value={hfToken}
+                    placeholder="hf_..."
+                    class="flex-1 font-mono"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onclick={() => (hfTokenMasked = !hfTokenMasked)}
+                    aria-label={hfTokenMasked ? "Show token" : "Hide token"}
+                  >
+                    {hfTokenMasked ? "Show" : "Hide"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onclick={handleValidateHfToken}
+                    disabled={hfValidating || !hfToken.trim()}
+                  >
+                    {#if hfValidating}
+                      <Loader2 class="mr-2 h-3 w-3 animate-spin" />
+                      Validating...
+                    {:else}
+                      Validate & Save
+                    {/if}
+                  </Button>
+                </div>
+                <p class="mt-2 text-xs text-muted-foreground">
+                  Create a token with <strong>write</strong> scope at
+                  <a
+                    href="https://huggingface.co/settings/tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 underline"
+                  >
+                    huggingface.co/settings/tokens
+                    <ExternalLink class="h-3 w-3" />
+                  </a>
+                </p>
+              </div>
+            {/if}
           </Card.Content>
         </Card.Root>
 

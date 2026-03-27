@@ -5,6 +5,7 @@ pub mod export;
 pub mod formatter;
 pub mod generator;
 pub mod pipeline;
+pub mod publish;
 pub mod quality;
 pub mod scanner;
 pub mod state;
@@ -39,6 +40,12 @@ pub fn run() {
             // Preview commands
             commands::preview::cmd_preview_samples,
             commands::preview::cmd_get_statistics,
+            // Publish commands
+            commands::publish::cmd_validate_hf_token,
+            commands::publish::cmd_save_hf_token,
+            commands::publish::cmd_get_hf_token,
+            commands::publish::cmd_delete_hf_token,
+            commands::publish::cmd_publish_dataset,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

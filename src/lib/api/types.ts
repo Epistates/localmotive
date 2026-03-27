@@ -214,3 +214,37 @@ export interface TokenStats {
   p99: number;
   total: number;
 }
+
+// ── Hugging Face Publish ──────────────────────────────────────────
+
+/** Whoami response from HF Hub */
+export interface WhoamiResponse {
+  name: string;
+  fullname: string | null;
+  orgs: { name: string }[];
+}
+
+/** Config for publishing to HF Hub (token resolved server-side) */
+export interface PublishConfig {
+  repoName: string;
+  namespace: string | null;
+  private: boolean;
+  license: string;
+  outputFiles: string[];
+}
+
+/** Result of a successful publish */
+export interface PublishResult {
+  repoUrl: string;
+  commitUrl: string;
+  filesUploaded: number;
+}
+
+/** Progress events streamed during publish */
+export type PublishProgress =
+  | { type: "creatingRepo" }
+  | { type: "generatingCard" }
+  | { type: "uploadingFile"; name: string; index: number; total: number }
+  | { type: "uploadingLfsFile"; name: string; bytesSent: number; bytesTotal: number }
+  | { type: "committing" }
+  | { type: "done" };

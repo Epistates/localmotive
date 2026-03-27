@@ -63,6 +63,11 @@ serde-jsonlines = "0.5"
 # Parallel processing
 rayon = "1"
 
+# Hugging Face Hub upload
+reqwest = { version = "0.12", features = ["json", "stream", "rustls-tls"] }
+sha2 = "0.10"
+base64 = "0.22"
+
 # Utilities
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
