@@ -21,6 +21,7 @@
     updateConfig,
     getFormats,
     getDefaultIgnorePatterns,
+    getDefaultSensitivePatterns,
     pickDirectory,
     validateHfToken,
     saveHfToken,
@@ -33,7 +34,9 @@
   let config = $state<PipelineConfig | null>(null);
   let formats = $state<FormatInfo[]>([]);
   let defaultPatterns = $state<string[]>([]);
+  let defaultSensitivePatterns = $state<string[]>([]);
   let userPatternsText = $state("");
+  let sensitivePatternsText = $state("");
   let saving = $state(false);
 
   // HF token state
@@ -45,15 +48,18 @@
 
   onMount(async () => {
     try {
-      const [cfg, fmts, defaults] = await Promise.all([
+      const [cfg, fmts, defaults, sensitiveDefaults] = await Promise.all([
         getConfig(),
         getFormats(),
         getDefaultIgnorePatterns(),
+        getDefaultSensitivePatterns(),
       ]);
       config = cfg;
       formats = fmts;
       defaultPatterns = defaults;
+      defaultSensitivePatterns = sensitiveDefaults;
       userPatternsText = cfg.ignore.userPatterns.join("\n");
+      sensitivePatternsText = cfg.ignore.sensitivePatterns.join("\n");
     } catch (e) {
       toast.error(`Failed to load config: ${e}`);
     }
@@ -81,6 +87,10 @@
         .split("\n")
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
+      config.ignore.sensitivePatterns = sensitivePatternsText
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
       await updateConfig(config);
       toast.success("Settings saved.");
     } catch (e) {
@@ -94,6 +104,7 @@
     try {
       config = await getConfig();
       userPatternsText = config.ignore.userPatterns.join("\n");
+      sensitivePatternsText = config.ignore.sensitivePatterns.join("\n");
       toast.info("Reset to defaults.");
     } catch (e) {
       toast.error(`Failed to reset: ${e}`);
@@ -232,6 +243,36 @@
                 class="mt-1 w-48"
               />
             </div>
+          </Card.Content>
+        </Card.Root>
+
+        <!-- Sensitive File Patterns -->
+        <Card.Root>
+          <Card.Header>
+            <Card.Title>Sensitive File Patterns</Card.Title>
+            <Card.Description>
+              Files matching these patterns are always excluded to prevent
+              secrets, keys, and credentials from being included in training
+              data.
+            </Card.Description>
+          </Card.Header>
+          <Card.Content class="space-y-4">
+            <div>
+              <div class="mb-2 flex flex-wrap gap-1">
+                {#each defaultSensitivePatterns as pattern}
+                  <Badge variant="secondary" class="text-xs">{pattern}</Badge>
+                {/each}
+              </div>
+              <p class="text-xs text-muted-foreground">
+                Defaults shown above. Edit below to customize (one per line).
+              </p>
+            </div>
+            <Textarea
+              bind:value={sensitivePatternsText}
+              placeholder={"e.g.\n.env\n*.pem\ncredentials.json"}
+              rows={5}
+              class="font-mono text-sm"
+            />
           </Card.Content>
         </Card.Root>
 

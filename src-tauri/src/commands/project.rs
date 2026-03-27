@@ -5,7 +5,7 @@ use tauri::State;
 use crate::error::Error;
 use crate::scanner::{
     discover_projects, scan_project, ProjectManifest, ProjectSummary, WalkerConfig,
-    default_ignore_patterns,
+    default_ignore_patterns, default_sensitive_patterns,
 };
 use crate::state::AppState;
 
@@ -89,6 +89,12 @@ pub async fn cmd_extract_readme_description(path: String) -> Result<Option<Strin
 #[tauri::command]
 pub async fn cmd_get_default_ignore_patterns() -> Result<Vec<String>, Error> {
     Ok(default_ignore_patterns())
+}
+
+/// Get the default sensitive file patterns.
+#[tauri::command]
+pub async fn cmd_get_default_sensitive_patterns() -> Result<Vec<String>, Error> {
+    Ok(default_sensitive_patterns())
 }
 
 /// Open a native directory picker dialog and return the selected path.

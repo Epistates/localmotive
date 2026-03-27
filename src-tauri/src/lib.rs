@@ -28,6 +28,7 @@ pub fn run() {
             commands::project::cmd_update_project_description,
             commands::project::cmd_extract_readme_description,
             commands::project::cmd_get_default_ignore_patterns,
+            commands::project::cmd_get_default_sensitive_patterns,
             commands::project::cmd_pick_directory,
             // Config commands
             commands::config::cmd_get_config,

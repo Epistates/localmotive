@@ -92,6 +92,23 @@ pub const DEFAULT_IGNORE_PATTERNS: &[&str] = &[
     "*.swo",
 ];
 
+/// Default patterns for files likely to contain secrets.
+/// Presented as a separate configurable list in Settings.
+pub const DEFAULT_SENSITIVE_PATTERNS: &[&str] = &[
+    ".env",
+    ".env.*",
+    "*.pem",
+    "*.key",
+    "*.p12",
+    "*.pfx",
+    "*.keystore",
+    "credentials.json",
+    "service-account*.json",
+    ".netrc",
+    ".npmrc",
+    ".pypirc",
+];
+
 /// Configuration for file walking.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -100,6 +117,8 @@ pub struct WalkerConfig {
     pub use_gitignore: bool,
     /// Additional ignore patterns (glob syntax).
     pub extra_ignore_patterns: Vec<String>,
+    /// Patterns for files likely to contain secrets (configurable in Settings).
+    pub sensitive_patterns: Vec<String>,
     /// Maximum file size in bytes (files larger are skipped).
     pub max_file_size_bytes: u64,
     /// Whether to skip binary files.
@@ -111,6 +130,10 @@ impl Default for WalkerConfig {
         Self {
             use_gitignore: true,
             extra_ignore_patterns: Vec::new(),
+            sensitive_patterns: DEFAULT_SENSITIVE_PATTERNS
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             max_file_size_bytes: 1_000_000, // 1 MB
             skip_binary: true,
         }
@@ -130,11 +153,12 @@ pub fn walk_project(root: &Path, config: &WalkerConfig) -> Result<Vec<FileInfo>>
         )));
     }
 
-    // Pre-compile ignore globs from default + user patterns
+    // Pre-compile ignore globs from default + user + sensitive patterns
     let ignore_globs: Vec<glob::Pattern> = DEFAULT_IGNORE_PATTERNS
         .iter()
         .copied()
         .chain(config.extra_ignore_patterns.iter().map(|s| s.as_str()))
+        .chain(config.sensitive_patterns.iter().map(|s| s.as_str()))
         .filter_map(|p| glob::Pattern::new(p).ok())
         .collect();
 
@@ -252,4 +276,9 @@ fn bytecount_lines(data: &[u8]) -> usize {
 /// Get the list of all default ignore patterns as owned strings.
 pub fn default_ignore_patterns() -> Vec<String> {
     DEFAULT_IGNORE_PATTERNS.iter().map(|s| s.to_string()).collect()
+}
+
+/// Get the list of default sensitive file patterns as owned strings.
+pub fn default_sensitive_patterns() -> Vec<String> {
+    DEFAULT_SENSITIVE_PATTERNS.iter().map(|s| s.to_string()).collect()
 }

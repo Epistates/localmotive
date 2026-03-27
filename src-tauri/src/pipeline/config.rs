@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::scanner::walker::DEFAULT_IGNORE_PATTERNS;
+use crate::scanner::walker::{DEFAULT_IGNORE_PATTERNS, DEFAULT_SENSITIVE_PATTERNS};
 
 /// Top-level pipeline configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,6 +32,7 @@ pub struct IgnoreConfig {
     pub use_gitignore: bool,
     pub default_patterns: Vec<String>,
     pub user_patterns: Vec<String>,
+    pub sensitive_patterns: Vec<String>,
     pub max_file_size_bytes: u64,
     pub skip_binary: bool,
 }
@@ -45,6 +46,10 @@ impl Default for IgnoreConfig {
                 .map(|s| s.to_string())
                 .collect(),
             user_patterns: Vec::new(),
+            sensitive_patterns: DEFAULT_SENSITIVE_PATTERNS
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
             max_file_size_bytes: 1_000_000,
             skip_binary: true,
         }

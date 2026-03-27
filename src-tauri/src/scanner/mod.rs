@@ -7,4 +7,4 @@ pub mod walker;
 // Re-export key types at module level
 pub use discovery::{ProjectManifest, ProjectSummary, LanguageStats, scan_project, discover_projects};
 pub use file_info::{FileInfo, Language};
-pub use walker::{WalkerConfig, default_ignore_patterns};
+pub use walker::{WalkerConfig, default_ignore_patterns, default_sensitive_patterns};

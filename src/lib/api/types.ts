@@ -117,6 +117,7 @@ export interface IgnoreConfig {
   useGitignore: boolean;
   defaultPatterns: string[];
   userPatterns: string[];
+  sensitivePatterns: string[];
   maxFileSizeBytes: number;
   skipBinary: boolean;
 }

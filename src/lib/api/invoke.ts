@@ -50,6 +50,11 @@ export async function getDefaultIgnorePatterns(): Promise<string[]> {
   return invoke("cmd_get_default_ignore_patterns");
 }
 
+/** Get the default sensitive file patterns. */
+export async function getDefaultSensitivePatterns(): Promise<string[]> {
+  return invoke("cmd_get_default_sensitive_patterns");
+}
+
 /** Open a native directory picker dialog. */
 export async function pickDirectory(): Promise<string | null> {
   return invoke("cmd_pick_directory");
