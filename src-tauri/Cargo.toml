@@ -1,0 +1,70 @@
+[package]
+name = "localmotive"
+version = "0.1.0"
+description = "SOTA LLM training data generator from source code repositories"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "localmotive_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri core + plugins
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-store = "2"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Error handling
+thiserror = "2"
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-util = "0.7"
+
+# Scanner: file traversal + language detection
+ignore = "0.4"
+hyperpolyglot = "0.1"
+content_inspector = "0.2"
+walkdir = "2"
+
+# Pattern matching for ignore filters
+glob = "0.3"
+
+# Markdown/README parsing
+comrak = { version = "0.38", default-features = false }
+
+# AST parsing
+tree-sitter = "0.24"
+tree-sitter-language = "0.1"
+tree-sitter-rust = "0.23"
+tree-sitter-javascript = "0.23"
+tree-sitter-typescript = "0.23"
+tree-sitter-python = "0.23"
+tree-sitter-go = "0.23"
+tree-sitter-java = "0.23"
+tree-sitter-c = "0.23"
+tree-sitter-cpp = "0.23"
+
+# Token counting
+tiktoken-rs = "0.6"
+
+# JSONL export
+serde-jsonlines = "0.5"
+
+# Parallel processing
+rayon = "1"
+
+# Utilities
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde"] }
+xxhash-rust = { version = "0.8", features = ["xxh3"] }
+log = "0.4"
