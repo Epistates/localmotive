@@ -121,11 +121,19 @@
     selectedNamespace = hfUser.name;
     selectedFiles = lastResult?.outputFiles.filter((f) => f.endsWith(".jsonl")) ?? [];
 
-    // Derive repo name from the first output filename
+    // Derive repo name from the first output filename, sanitized for HF
     if (lastResult && lastResult.outputFiles.length > 0) {
       const first = lastResult.outputFiles[0].split("/").pop() ?? "";
       const parts = first.split("_");
-      repoName = (parts[0] || "training-data") + "-training-data";
+      const raw = (parts[0] || "training-data") + "-training-data";
+      repoName = raw
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, "-")
+        .replace(/-{2,}/g, "-")
+        .replace(/\.{2,}/g, ".")
+        .replace(/^[.\-]+/, "")
+        .replace(/[.\-]+$/, "")
+        .slice(0, 96) || "training-data";
     }
 
     publishOpen = true;
